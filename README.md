@@ -48,13 +48,13 @@ Disk I/O metrics are not included because there are tons of different utilities 
 
 ```
 $ make
-gcc -g -Wall -Wextra -Wpedantic -I. -c -o puppy-eye.o puppy-eye.c
-gcc -g -Wall -Wextra -Wpedantic -I. -c -o os.o os.c
-gcc -g -Wall -Wextra -Wpedantic -I. -c -o memory.o memory.c
-gcc -g -Wall -Wextra -Wpedantic -I. -c -o network.o network.c
-gcc -g -Wall -Wextra -Wpedantic -I. -c -o utils.o utils.c
-gcc -g -Wall -Wextra -Wpedantic -I. -c -o ncurses_utils.o ncurses_utils.c
-gcc -g -Wall -Wextra -Wpedantic -I. -o puppy-eye puppy-eye.o os.o memory.o network.o utils.o ncurses_utils.o -lncurses
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -fsanitize-trap -I. -c -o puppy-eye.o puppy-eye.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -fsanitize-trap -I. -c -o os.o os.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -fsanitize-trap -I. -c -o memory.o memory.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -fsanitize-trap -I. -c -o network.o network.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -fsanitize-trap -I. -c -o utils.o utils.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -fsanitize-trap -I. -c -o ncurses_utils.o ncurses_utils.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -fsanitize-trap -I. -o puppy-eye puppy-eye.o os.o memory.o network.o utils.o ncurses_utils.o -lncurses
 ```
 
 ## Usage
@@ -63,7 +63,7 @@ Users can simply run `puppy-eye` without any options. The default refresh period
 
 ```
 $ ./puppy-eye -h
-Puppy Eye Linux System Monitoring Utility - Version 1.0.0
+Puppy Eye Linux System Monitoring Utility - Version 1.0.1
 usage: puppy-eye [-r|--refresh <second(s)>]
                  [-h|--help]
 ```
@@ -81,4 +81,6 @@ usage: puppy-eye [-r|--refresh <second(s)>]
 
 ```
 [01/07/2025] 1.0.0 - initial commit
+
+[01/08/2025] 1.0.1 - minor fixes
 ```

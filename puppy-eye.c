@@ -10,7 +10,7 @@
 #include "ncurses_utils.h"
 #include "utils.h"
 
-#define VERSION "1.0.0"
+#define VERSION "1.0.1"
 
 /* define usage function */
 static void usage() {
@@ -30,10 +30,9 @@ int main(int argc, char *argv[]) {
         {NULL, 0, NULL, 0}
     };
 
-    int refresh_second = 5;
+    long int refresh_second = 5;
     int error_flag = 0;
     char error_msg[BUFSIZ];
-    int ch;
     int exit_code = EXIT_SUCCESS;
 
     /* suppress default getopt error messages */
@@ -128,7 +127,7 @@ int main(int argc, char *argv[]) {
 
     /* data collection and refresh logic */
     while (1) {
-        if ((ch = wgetch(main_window)) == 'q') {
+        if (wgetch(main_window) == 'q') {
             break;
         }
 
@@ -201,7 +200,7 @@ int main(int argc, char *argv[]) {
         /* retrieve metrics for memory_metrics */
         ret_get_memory_usage = get_memory_usage(cur_memory_metrics);
         if (ret_get_memory_usage < 0) {
-            strcpy(error_msg, "ERROR, unable to retrieve memory metrics");
+            strcpy(error_msg, "ERROR: unable to retrieve memory metrics");
             ++error_flag;
             break;
         }
@@ -282,7 +281,7 @@ int main(int argc, char *argv[]) {
         wrefresh(main_window);
 
         /* sleep */
-        napms(refresh_second * 1000);
+        napms((int)refresh_second * 1000);
 
         /* free previous metrics structs */
         free(prev_os_metrics);
