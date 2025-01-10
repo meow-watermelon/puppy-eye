@@ -2,7 +2,7 @@
 #include <sys/utsname.h>
 #include "utils.h"
 
-int is_linux() {
+int is_linux(void) {
     struct utsname uname_data;
     int ret_uname;
 
