@@ -10,10 +10,10 @@
 #include "ncurses_utils.h"
 #include "utils.h"
 
-#define VERSION "1.0.1"
+#define VERSION "1.0.2"
 
 /* define usage function */
-static void usage() {
+static void usage(void) {
     printf(
         "Puppy Eye Linux System Monitoring Utility - Version %s\n"
         "usage: puppy-eye [-r|--refresh <second(s)>]\n"
