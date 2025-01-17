@@ -10,7 +10,7 @@
 #include "ncurses_utils.h"
 #include "utils.h"
 
-#define VERSION "1.0.2"
+#define VERSION "1.1.0"
 
 /* define usage function */
 static void usage(void) {
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
     int prev_ret_get_interface_metrics;
 
     /* initialize beginning row number for network interface */
-    int init_if_name_row = 20;
+    int init_if_name_row = 21;
 
     /* initialize ncurses window struct */
     WINDOW *main_window;
@@ -190,12 +190,15 @@ int main(int argc, char *argv[]) {
             ++error_flag;
             break;
         }
+
         ret_get_process_states = get_process_states(cur_os_metrics);
         if (ret_get_process_states < 0) {
             strcpy(error_msg, "ERROR: unable to retrieve process states metrics");
             ++error_flag;
             break;
         }
+
+        get_current_users(cur_os_metrics);
 
         /* retrieve metrics for memory_metrics */
         ret_get_memory_usage = get_memory_usage(cur_memory_metrics);
@@ -229,24 +232,25 @@ int main(int argc, char *argv[]) {
         mvwprintw(main_window, 4, 29, "%8ld", cur_os_metrics->running_process);
         mvwprintw(main_window, 4, 48, "%8ld", cur_os_metrics->blocked_process);
         mvwprintw(main_window, 4, 67, "%8ld", cur_os_metrics->zombie_process);
+        mvwprintw(main_window, 5, 8, "%8ld", cur_os_metrics->current_users);
 
-        mvwprintw(main_window, 9, 19, "%10ld", cur_memory_metrics->total_memory / 1024);
-        mvwprintw(main_window, 9, 38, "%10ld", cur_memory_metrics->avail_memory / 1024);
-        mvwprintw(main_window, 9, 57, "%10ld", cur_memory_metrics->free_memory / 1024);
-        mvwprintw(main_window, 9, 75, "%10ld", cur_memory_metrics->buffer / 1024);
-        mvwprintw(main_window, 9, 95, "%10ld", cur_memory_metrics->cache / 1024);
-        mvwprintw(main_window, 9, 114, "%10ld", cur_memory_metrics->page_tables / 1024);
-        mvwprintw(main_window, 10, 17, "%10ld", cur_memory_metrics->total_swap / 1024);
-        mvwprintw(main_window, 10, 36, "%10ld", cur_memory_metrics->free_swap / 1024);
+        mvwprintw(main_window, 10, 19, "%10ld", cur_memory_metrics->total_memory / 1024);
+        mvwprintw(main_window, 10, 38, "%10ld", cur_memory_metrics->avail_memory / 1024);
+        mvwprintw(main_window, 10, 57, "%10ld", cur_memory_metrics->free_memory / 1024);
+        mvwprintw(main_window, 10, 75, "%10ld", cur_memory_metrics->buffer / 1024);
+        mvwprintw(main_window, 10, 95, "%10ld", cur_memory_metrics->cache / 1024);
+        mvwprintw(main_window, 10, 114, "%10ld", cur_memory_metrics->page_tables / 1024);
+        mvwprintw(main_window, 11, 17, "%10ld", cur_memory_metrics->total_swap / 1024);
+        mvwprintw(main_window, 11, 36, "%10ld", cur_memory_metrics->free_swap / 1024);
 
-        mvwprintw(main_window, 16, 20, "%8d", cur_network_metrics->arp_cache_entries);
+        mvwprintw(main_window, 17, 20, "%8d", cur_network_metrics->arp_cache_entries);
 
         /* print other metrics that need time difference */
         if (prev_os_metrics != NULL && prev_memory_metrics != NULL && prev_network_metrics != NULL) {
             mvwprintw(main_window, 3, 113, "%10ld", (cur_os_metrics->context_switches - prev_os_metrics->context_switches) / refresh_second);
 
-            mvwprintw(main_window, 11, 20, "%12ld", (cur_memory_metrics->major_page_faults - prev_memory_metrics->major_page_faults) / refresh_second);
-            mvwprintw(main_window, 11, 57, "%12ld", (cur_memory_metrics->minor_page_faults - prev_memory_metrics->minor_page_faults) / refresh_second);
+            mvwprintw(main_window, 12, 20, "%12ld", (cur_memory_metrics->major_page_faults - prev_memory_metrics->major_page_faults) / refresh_second);
+            mvwprintw(main_window, 12, 57, "%12ld", (cur_memory_metrics->minor_page_faults - prev_memory_metrics->minor_page_faults) / refresh_second);
 
             /* network interface metrics*/
             if (ret_get_interface_metrics == 0) {
@@ -264,7 +268,7 @@ int main(int argc, char *argv[]) {
                         mvwprintw(main_window, init_if_name_row + if_name_found - 1, 1, "%-16s", cur_network_metrics->if_network[i].interface_name);
                         mvwprintw(main_window, init_if_name_row + if_name_found - 1, 23, "%10ld", (cur_network_metrics->if_network[i].rx_packets - prev_network_metrics->if_network[i].rx_packets) / refresh_second);
                         mvwprintw(main_window, init_if_name_row + if_name_found - 1, 35, "%10ld", (cur_network_metrics->if_network[i].rx_bytes - prev_network_metrics->if_network[i].rx_bytes) / 1024 / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 47, "%10ld", (cur_network_metrics->if_network[i].rx_errors - prev_network_metrics->if_network[i].rx_errors) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 48, "%10ld", (cur_network_metrics->if_network[i].rx_errors - prev_network_metrics->if_network[i].rx_errors) / refresh_second);
                         mvwprintw(main_window, init_if_name_row + if_name_found - 1, 63, "%10ld", (cur_network_metrics->if_network[i].rx_dropped - prev_network_metrics->if_network[i].rx_dropped) / refresh_second);
                         mvwprintw(main_window, init_if_name_row + if_name_found - 1, 77, "%10ld", (cur_network_metrics->if_network[i].tx_packets - prev_network_metrics->if_network[i].tx_packets) / refresh_second);
                         mvwprintw(main_window, init_if_name_row + if_name_found - 1, 89, "%10ld", (cur_network_metrics->if_network[i].tx_bytes - prev_network_metrics->if_network[i].tx_bytes) / 1024 / refresh_second);

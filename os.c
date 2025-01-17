@@ -4,6 +4,7 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <string.h>
+#include <utmpx.h>
 #include "os.h"
 
 int get_loadavg(struct os_metrics *input_os_metrics) {
@@ -189,4 +190,25 @@ handle_error:
     }
 
     return -1;
+}
+
+void get_current_users(struct os_metrics *input_os_metrics) {
+    /* initialize variable for number of current logged in users */
+    input_os_metrics->current_users = 0;
+
+    /* define utmpx pointer */
+    struct utmpx *input_utmpx;
+
+    /* rewind pointer to beginning of utmp file, DO NOT skip this step */
+    setutxent();
+
+    while ((input_utmpx = getutxent()) != NULL) {
+        /* check users who are established and authenticated */
+        if (input_utmpx->ut_type == USER_PROCESS || input_utmpx->ut_type == LOGIN_PROCESS) {
+            ++input_os_metrics->current_users;
+        }
+    }
+
+    /* close utmp file*/
+    endutxent();
 }
