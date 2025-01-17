@@ -204,7 +204,7 @@ void get_current_users(struct os_metrics *input_os_metrics) {
 
     while ((input_utmpx = getutxent()) != NULL) {
         /* check users who are established and authenticated */
-        if (input_utmpx->ut_type == USER_PROCESS || input_utmpx->ut_type == LOGIN_PROCESS) {
+        if ((input_utmpx->ut_type == USER_PROCESS || input_utmpx->ut_type == LOGIN_PROCESS) && input_utmpx->ut_user[0] != '\0') {
             ++input_os_metrics->current_users;
         }
     }
