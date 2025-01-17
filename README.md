@@ -25,6 +25,7 @@ Disk I/O metrics are not included because there are tons of different utilities 
 | OS | Total Number of Blocked Processes | count | number of blocked processes |
 | OS | Total Number of Zombie Processes | count | number of zombie processes |
 | OS | Context Switch | count/second | number of context switches per second |
+| OS | Current Users | count | number of current logged in users |
 | Memory | Total Memory | MB | total memory |
 | Memory | Free memory | MB | free memory |
 | Memory | Available Memory | MB | available memory |
@@ -63,7 +64,7 @@ Users can simply run `puppy-eye` without any options. The default refresh period
 
 ```
 $ ./puppy-eye -h
-Puppy Eye Linux System Monitoring Utility - Version 1.0.2
+Puppy Eye Linux System Monitoring Utility - Version 1.1.0
 usage: puppy-eye [-r|--refresh <second(s)>]
                  [-h|--help]
 ```
@@ -85,4 +86,6 @@ usage: puppy-eye [-r|--refresh <second(s)>]
 [01/08/2025] 1.0.1 - minor fixes
 
 [01/09/2025] 1.0.2 - fix function declarations
+
+[01/16/2025] 1.1.0 - add number of users metric
 ```
