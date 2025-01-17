@@ -6,12 +6,9 @@ OBJS = $(SRCS:.c=.o)
 TARGET = puppy-eye
 LDFLAGS = -lncurses
 
-.PHONY: all clean static
+.PHONY: all clean
 
 all: $(TARGET)
-
-static: $(OBJS)
-	$(CC) $(CFLAGS) $(INCLUDES) -static -o $(TARGET) $^ $(LDFLAGS)
 
 $(TARGET): $(OBJS)
 	$(CC) $(CFLAGS) $(INCLUDES) -o $@ $^ $(LDFLAGS)

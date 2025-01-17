@@ -18,10 +18,14 @@ struct os_metrics {
 
     /* context switches count */
     long int context_switches;
+
+    /* current logged in users count */
+    long int current_users;
 };
 
 extern int get_loadavg(struct os_metrics *input_os_metrics);
 extern int get_fd_usage(struct os_metrics *input_os_metrics);
 extern int get_process_states(struct os_metrics *input_os_metrics);
+extern void get_current_users(struct os_metrics *input_os_metrics);
 
 #endif /* OS_H */

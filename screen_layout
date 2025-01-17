@@ -1,0 +1,25 @@
+----------window boarder----------
+OS Metrics - standout
+
+Load Average(1min / 5min / 15min): XXXXXX XXXXXX XXXXXX    File Descriptor Usage: XXXXXXXXXX    Context Switch: XXXXXXXXXX / sec
+Processes: XXXXXXXX total | XXXXXXXX running | XXXXXXXX blocked | XXXXXXXX zombie
+Users: XXXXXXXX
+
+----------------------------------
+Memory Metrics - standout
+
+Memory Usage(MB): XXXXXXXXXX total | XXXXXXXXXX avail | XXXXXXXXXX free | XXXXXXXXXX buffer | XXXXXXXXXX cache | XXXXXXXXXX page tables
+Swap Usage(MB): XXXXXXXXXX total | XXXXXXXXXX free
+Page Faults Count: XXXXXXXX major faults / second | XXXXXXXX minor page faults / second
+
+----------------------------------
+Network Metrics - standout
+
+ARP Cache entries: XXXXXXXX
+
+Interface Name    |  RX Packet  |   RX KB   |  RX Error  |  RX Dropped  |  TX Packet  |   TX KB   |  TX Error  |  TX Dropped  |  Collision
+XXXXXXXXXXXXXXXX  |   XXXXXXXXXX| XXXXXXXXXX|  XXXXXXXXXX|    XXXXXXXXXX|   XXXXXXXXXX| XXXXXXXXXX|  XXXXXXXXXX|    XXXXXXXXXX| XXXXXXXXXX
+ifname2
+
+----------------------------------
+01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789
