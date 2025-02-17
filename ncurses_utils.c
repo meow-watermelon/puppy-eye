@@ -53,15 +53,15 @@ void construct_window_layout(WINDOW *input_window, int interface_count) {
     mvwprintw(input_window, 19, 1, interface_io_banner_layout);
     mvwprintw(input_window, 20, 1, interface_layout);
     wattroff(input_window, A_BOLD);
-    mvwhline(input_window, 20 + interface_count + 1, 1, ACS_HLINE, COLS - 2);
+    mvwhline(input_window, 20 + interface_count + 2, 1, ACS_HLINE, COLS - 2);
 
     /* disk metrics beginning postition is based on the last network interface position(interface_count)*/
     wattron(input_window, A_STANDOUT);
-    mvwprintw(input_window, 20 + interface_count + 2, 1, disk_metrics_banner);
+    mvwprintw(input_window, 20 + interface_count + 3, 1, disk_metrics_banner);
     wattroff(input_window, A_STANDOUT);
     wattron(input_window, A_BOLD);
-    mvwprintw(input_window, 20 + interface_count + 3, 1, disk_io_banner_layout);
-    mvwprintw(input_window, 20 + interface_count + 4, 1, disk_layout);
+    mvwprintw(input_window, 20 + interface_count + 5, 1, disk_io_banner_layout);
+    mvwprintw(input_window, 20 + interface_count + 6, 1, disk_layout);
     wattroff(input_window, A_BOLD);
 
     /* print footer */

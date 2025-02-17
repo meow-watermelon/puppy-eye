@@ -278,10 +278,6 @@ int main(int argc, char *argv[]) {
             mvwprintw(main_window, 12, 57, "%12ld", (cur_memory_metrics->minor_page_faults - prev_memory_metrics->minor_page_faults) / refresh_second);
 
             /* network interface metrics*/
-            //if (ret_get_interface_metrics == 0) {
-            //    continue;
-            //}
-
             for (int i = 0; i < ret_get_interface_metrics; ++i) {
                 for (int j = 0; j < prev_ret_get_interface_metrics; ++j) {
                     /* only process if current interface name exists */
@@ -307,24 +303,20 @@ int main(int argc, char *argv[]) {
             }
 
             /* disk metrics*/
-            //if (ret_get_interface_metrics == 0) {
-            //    continue;
-            //}
-
             for (int i = 0; i < ret_get_disk_metrics; ++i) {
                 for (int j = 0; j < prev_ret_get_disk_metrics; ++j) {
                     /* only process if current disk name exists */
                     if (strcmp(cur_disk_metrics->diskstats[i].disk_name, prev_disk_metrics->diskstats[i].disk_name) == 0) {
                         ++disk_name_found;
 
-                        print_disk_delimiter(main_window, init_if_name_row + if_name_found + disk_name_found + 5 - 1);
+                        print_disk_delimiter(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1);
 
                         /* print disk metrics */
                         mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 1, "%-12s", cur_disk_metrics->diskstats[i].disk_name);
                         mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 17, "%12ld", (cur_disk_metrics->diskstats[i].reads - prev_disk_metrics->diskstats[i].reads) / refresh_second);
                         mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 31, "%15ld", (cur_disk_metrics->diskstats[i].sector_read - prev_disk_metrics->diskstats[i].sector_read) / refresh_second);
                         mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 50, "%12ld", (cur_disk_metrics->diskstats[i].writes - prev_disk_metrics->diskstats[i].writes) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 64, "%12ld", (cur_disk_metrics->diskstats[i].sector_write - prev_disk_metrics->diskstats[i].sector_write) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 64, "%15ld", (cur_disk_metrics->diskstats[i].sector_write - prev_disk_metrics->diskstats[i].sector_write) / refresh_second);
 
                         break;
                     }
