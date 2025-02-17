@@ -17,9 +17,17 @@ Network Metrics - standout
 
 ARP Cache entries: XXXXXXXX
 
+[Network Interface I/O (per second)]
 Interface Name    |  RX Packet  |   RX KB   |  RX Error  |  RX Dropped  |  TX Packet  |   TX KB   |  TX Error  |  TX Dropped  |  Collision
 XXXXXXXXXXXXXXXX  |   XXXXXXXXXX| XXXXXXXXXX|  XXXXXXXXXX|    XXXXXXXXXX|   XXXXXXXXXX| XXXXXXXXXX|  XXXXXXXXXX|    XXXXXXXXXX| XXXXXXXXXX
 ifname2
+ifname3
+
+----------------------------------
+Disk Metrics - standout
+
+Disk Name    |  Read Count  |     Read KB    |  Write Count  |     Write KB    
+diskname1    |  XXXXXXXXXXXX| XXXXXXXXXXXXXXX|   XXXXXXXXXXXX| XXXXXXXXXXXXXXX
 
 ----------------------------------
 01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789

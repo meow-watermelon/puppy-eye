@@ -5,7 +5,7 @@
 
 #define INTERFACE_COUNT 64 
 
-struct interfaces {
+struct interface {
     char interface_name[IFNAMSIZ];
     long int rx_bytes;
     long int rx_packets;
@@ -20,7 +20,7 @@ struct interfaces {
 
 struct network_metrics {
     /* interfaces metrics */
-    struct interfaces if_network[INTERFACE_COUNT];
+    struct interface if_network[INTERFACE_COUNT];
 
     /* ARP metrics */
     int arp_cache_entries;

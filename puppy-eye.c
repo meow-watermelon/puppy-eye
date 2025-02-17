@@ -7,10 +7,11 @@
 #include "os.h"
 #include "memory.h"
 #include "network.h"
+#include "disk.h"
 #include "ncurses_utils.h"
 #include "utils.h"
 
-#define VERSION "1.1.0"
+#define VERSION "1.2.0"
 
 /* define usage function */
 static void usage(void) {
@@ -94,11 +95,17 @@ int main(int argc, char *argv[]) {
     struct network_metrics *cur_network_metrics = NULL;
     struct network_metrics *prev_network_metrics = NULL;
 
-    /* initialize previous network interface retuen value */
+    struct disk_metrics *cur_disk_metrics = NULL;
+    struct disk_metrics *prev_disk_metrics = NULL;
+
+    /* initialize previous network interface return value */
     int prev_ret_get_interface_metrics;
 
     /* initialize beginning row number for network interface */
     int init_if_name_row = 21;
+
+    /* initialize previous disk metrics return value */
+    int prev_ret_get_disk_metrics;
 
     /* initialize ncurses window struct */
     WINDOW *main_window;
@@ -139,9 +146,6 @@ int main(int argc, char *argv[]) {
         box(main_window, 0, 0);
         wrefresh(main_window);
 
-        /* construct window layout */
-        construct_window_layout(main_window);
-
         /* initialize variables */
         int ret_get_loadavg;
         int ret_get_fd_usage;
@@ -152,7 +156,10 @@ int main(int argc, char *argv[]) {
         int ret_get_interface_metrics;
         int ret_get_arp_metrics;
 
+        int ret_get_disk_metrics;
+
         int if_name_found = 0;
+        int disk_name_found = 0;
 
         /* allocate metrics structs */
         cur_os_metrics = (struct os_metrics *)malloc(sizeof(struct os_metrics));
@@ -172,6 +179,13 @@ int main(int argc, char *argv[]) {
         cur_network_metrics = (struct network_metrics *)malloc(sizeof(struct network_metrics));
         if (cur_network_metrics == NULL) {
             strcpy(error_msg, "ERROR: unable to allocate memory for cur_network_metrics");
+            ++error_flag;
+            break;
+        }
+
+        cur_disk_metrics = (struct disk_metrics *)malloc(sizeof(struct disk_metrics));
+        if (cur_disk_metrics == NULL) {
+            strcpy(error_msg, "ERROR: unable to allocate memory for cur_disk_metrics");
             ++error_flag;
             break;
         }
@@ -223,6 +237,17 @@ int main(int argc, char *argv[]) {
             break;
         }
 
+        /* retrieve metrics for disk_metrics */
+        ret_get_disk_metrics = get_disk_metrics(cur_disk_metrics);
+        if (ret_get_disk_metrics < 0) {
+            strcpy(error_msg, "ERROR: unable to retrieve disk metrics");
+            ++error_flag;
+            break;
+        }
+
+        /* construct window layout */
+        construct_window_layout(main_window, ret_get_interface_metrics);
+
         /* print available metrics */
         mvwprintw(main_window, 3, 36, "%6.2f", cur_os_metrics->loadavg_1m);
         mvwprintw(main_window, 3, 43, "%6.2f", cur_os_metrics->loadavg_5m);
@@ -246,17 +271,13 @@ int main(int argc, char *argv[]) {
         mvwprintw(main_window, 17, 20, "%8d", cur_network_metrics->arp_cache_entries);
 
         /* print other metrics that need time difference */
-        if (prev_os_metrics != NULL && prev_memory_metrics != NULL && prev_network_metrics != NULL) {
+        if (prev_os_metrics != NULL && prev_memory_metrics != NULL && prev_network_metrics != NULL && prev_disk_metrics != NULL) {
             mvwprintw(main_window, 3, 113, "%10ld", (cur_os_metrics->context_switches - prev_os_metrics->context_switches) / refresh_second);
 
             mvwprintw(main_window, 12, 20, "%12ld", (cur_memory_metrics->major_page_faults - prev_memory_metrics->major_page_faults) / refresh_second);
             mvwprintw(main_window, 12, 57, "%12ld", (cur_memory_metrics->minor_page_faults - prev_memory_metrics->minor_page_faults) / refresh_second);
 
             /* network interface metrics*/
-            if (ret_get_interface_metrics == 0) {
-                continue;
-            }
-
             for (int i = 0; i < ret_get_interface_metrics; ++i) {
                 for (int j = 0; j < prev_ret_get_interface_metrics; ++j) {
                     /* only process if current interface name exists */
@@ -280,6 +301,27 @@ int main(int argc, char *argv[]) {
                     }
                 }
             }
+
+            /* disk metrics*/
+            for (int i = 0; i < ret_get_disk_metrics; ++i) {
+                for (int j = 0; j < prev_ret_get_disk_metrics; ++j) {
+                    /* only process if current disk name exists */
+                    if (strcmp(cur_disk_metrics->diskstats[i].disk_name, prev_disk_metrics->diskstats[i].disk_name) == 0) {
+                        ++disk_name_found;
+
+                        print_disk_delimiter(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1);
+
+                        /* print disk metrics */
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 1, "%-12s", cur_disk_metrics->diskstats[i].disk_name);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 17, "%12ld", (cur_disk_metrics->diskstats[i].reads - prev_disk_metrics->diskstats[i].reads) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 31, "%15ld", ((cur_disk_metrics->diskstats[i].sector_read - prev_disk_metrics->diskstats[i].sector_read)) * cur_disk_metrics->diskstats[i].sector_size / 1024 / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 50, "%12ld", (cur_disk_metrics->diskstats[i].writes - prev_disk_metrics->diskstats[i].writes) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 64, "%15ld", ((cur_disk_metrics->diskstats[i].sector_write - prev_disk_metrics->diskstats[i].sector_write)) * cur_disk_metrics->diskstats[i].sector_size / 1024 / refresh_second);
+
+                        break;
+                    }
+                }
+            }
         }
 
         wrefresh(main_window);
@@ -294,6 +336,8 @@ int main(int argc, char *argv[]) {
         prev_memory_metrics = NULL;
         free(prev_network_metrics);
         prev_network_metrics = NULL;
+        free(prev_disk_metrics);
+        prev_disk_metrics = NULL;
 
         /* copy the current metrics as previous ones for next calculation */
         prev_os_metrics = (struct os_metrics *)malloc(sizeof(struct os_metrics));
@@ -317,12 +361,21 @@ int main(int argc, char *argv[]) {
             break;
         }
 
+        prev_disk_metrics = (struct disk_metrics *)malloc(sizeof(struct disk_metrics));
+        if (prev_disk_metrics == NULL) {
+            strcpy(error_msg, "ERROR: unable to allocate memory for prev_disk_metrics");
+            ++error_flag;
+            break;
+        }
+
         /* TODO: need to add error check as memcpy() does not indicate failuer if it is failed */
         memcpy(prev_os_metrics, cur_os_metrics, sizeof(struct os_metrics));
         memcpy(prev_memory_metrics, cur_memory_metrics, sizeof(struct memory_metrics));
         memcpy(prev_network_metrics, cur_network_metrics, sizeof(struct network_metrics));
+        memcpy(prev_disk_metrics, cur_disk_metrics, sizeof(struct disk_metrics));
 
         prev_ret_get_interface_metrics = ret_get_interface_metrics;
+        prev_ret_get_disk_metrics = ret_get_disk_metrics;
 
         /* free current metrics structs */
         free(cur_os_metrics);
@@ -331,6 +384,8 @@ int main(int argc, char *argv[]) {
         cur_memory_metrics = NULL;
         free(cur_network_metrics);
         cur_network_metrics = NULL;
+        free(cur_disk_metrics);
+        cur_disk_metrics = NULL;
     }
 
     /* terminate ncurses window */
@@ -354,6 +409,11 @@ int main(int argc, char *argv[]) {
         cur_network_metrics = NULL;
     }
 
+    if (cur_disk_metrics != NULL) {
+        free(cur_disk_metrics);
+        cur_disk_metrics = NULL;
+    }
+
     if (prev_os_metrics != NULL) {
         free(prev_os_metrics);
         prev_os_metrics = NULL;
@@ -367,6 +427,11 @@ int main(int argc, char *argv[]) {
     if (prev_network_metrics != NULL) {
         free(prev_network_metrics);
         prev_network_metrics = NULL;
+    }
+
+    if (prev_disk_metrics != NULL) {
+        free(prev_disk_metrics);
+        prev_disk_metrics = NULL;
     }
 
     /* print error message if error_flag is set */

@@ -2,9 +2,7 @@
 
 ## Intro
 
-`puppy-eye` is a local Linux monitoring utility to monitor system load, context switches, memory usage and network interface traffic etc.. It is written in C and utilizing [ncurses](https://invisible-island.net/ncurses/) as the TUI library.
-
-Disk I/O metrics are not included because there are tons of different utilities can show disk I/O usage already.
+`puppy-eye` is a local Linux monitoring utility to monitor system load, context switches, memory usage, network interface traffic and disk I/O etc.. It is written in C and utilizing [ncurses](https://invisible-island.net/ncurses/) as the TUI library.
 
 ## Screenshot
 
@@ -39,11 +37,17 @@ Disk I/O metrics are not included because there are tons of different utilities 
 | Network | ARP Cache Entries | count | number of ARP cache entries |
 | Network | RX KB | KB/second | number of good received bytes per second |
 | Network | TX KB | KB/second | number of good transmitted bytes per second |
+| Network | RX Packet | KB/second | number of packets received per second |
+| Network | TX Packet | KB/second | number of packets in transmission per second |
 | Network | RX Dropped | packet/second | number of packets received but dropped per second |
 | Network | TX Dropped | packet/second | number of packets dropped in transmission per second |
 | Network | RX Error | packet/second | number of bad packets received per second |
 | Network | TX Error | packet/second | number of bad packets transmitted per second |
 | Network | Collision | count/second | number of packets collisions per second |
+| Disk | Read Count | count/second | number of reads completed successfully per second |
+| Disk | Write Count | count/second | number of writes completed per second |
+| Disk | Read KB | KB/second | number of bytes read per second |
+| Disk | Write KB | KB/second | number of bytes written per second |
 
 ## Compilation
 
@@ -53,9 +57,10 @@ gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-para
 gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o os.o os.c
 gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o memory.o memory.c
 gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o network.o network.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o disk.o disk.c
 gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o utils.o utils.c
 gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o ncurses_utils.o ncurses_utils.c
-gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -o puppy-eye puppy-eye.o os.o memory.o network.o utils.o ncurses_utils.o -lncurses
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -o puppy-eye puppy-eye.o os.o memory.o network.o disk.o utils.o ncurses_utils.o -lncurses
 ```
 
 ## Usage
@@ -64,7 +69,7 @@ Users can simply run `puppy-eye` without any options. The default refresh period
 
 ```
 $ ./puppy-eye -h
-Puppy Eye Linux System Monitoring Utility - Version 1.1.0
+Puppy Eye Linux System Monitoring Utility - Version 1.2.0
 usage: puppy-eye [-r|--refresh <second(s)>]
                  [-h|--help]
 ```
@@ -88,4 +93,6 @@ usage: puppy-eye [-r|--refresh <second(s)>]
 [01/09/2025] 1.0.2 - fix function declarations
 
 [01/16/2025] 1.1.0 - add number of users metric
+
+[02/17/2025] 1.2.0 - add disk metrics
 ```
