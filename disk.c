@@ -16,6 +16,7 @@ long int get_disk_size(char *disk_name) {
         goto handle_error;
     }
 
+    /* read /sys/block/<device>/size file */
     disk_size_file = fopen(disk_size_file_path, "r");
     if (disk_size_file == NULL) {
         goto handle_error;
@@ -26,6 +27,7 @@ long int get_disk_size(char *disk_name) {
         goto handle_error;
     }
 
+    /* close file handle */
     fclose(disk_size_file);
 
     return disk_size;
@@ -51,6 +53,7 @@ int get_disk_sector_size(char *disk_name) {
         goto handle_error;
     }
 
+    /* read /sys/block/<device>/queue/logical_block_size file */
     disk_sector_size_file = fopen(disk_sector_size_file_path, "r");
     if (disk_sector_size_file == NULL) {
         goto handle_error;
@@ -61,6 +64,7 @@ int get_disk_sector_size(char *disk_name) {
         goto handle_error;
     }
 
+    /* close file handle */
     fclose(disk_sector_size_file);
 
     return disk_sector_size;
@@ -70,6 +74,7 @@ handle_error:
         fclose(disk_sector_size_file);
     }
 
+    /* return DEFAULT_SECTOR_SIZE if call is failed */
     return DEFAULT_SECTOR_SIZE;
 }
 
