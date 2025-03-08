@@ -12,7 +12,7 @@
 #include "utils.h"
 
 #define SIZEOF(x) (sizeof(x) / sizeof(x[0]))
-#define VERSION "1.2.0"
+#define VERSION "1.2.1"
 
 /* define usage function */
 static void usage(void) {
