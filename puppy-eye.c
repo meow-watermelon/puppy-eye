@@ -11,7 +11,8 @@
 #include "ncurses_utils.h"
 #include "utils.h"
 
-#define VERSION "1.2.0"
+#define SIZEOF(x) (sizeof(x) / sizeof(x[0]))
+#define VERSION "1.2.1"
 
 /* define usage function */
 static void usage(void) {
@@ -86,17 +87,20 @@ int main(int argc, char *argv[]) {
     }
 
     /* initialize metric structs */
-    struct os_metrics *cur_os_metrics = NULL;
-    struct os_metrics *prev_os_metrics = NULL;
+    struct os_metrics cur_os_metrics;
+    struct os_metrics prev_os_metrics;
 
-    struct memory_metrics *cur_memory_metrics = NULL;
-    struct memory_metrics *prev_memory_metrics = NULL;
+    struct memory_metrics cur_memory_metrics;
+    struct memory_metrics prev_memory_metrics;
 
-    struct network_metrics *cur_network_metrics = NULL;
-    struct network_metrics *prev_network_metrics = NULL;
+    struct network_metrics cur_network_metrics;
+    struct network_metrics prev_network_metrics;
 
-    struct disk_metrics *cur_disk_metrics = NULL;
-    struct disk_metrics *prev_disk_metrics = NULL;
+    struct disk_metrics cur_disk_metrics;
+    struct disk_metrics prev_disk_metrics;
+
+    /* previous data copy state flag */
+    int prev_data_flag = 0;
 
     /* initialize previous network interface return value */
     int prev_ret_get_interface_metrics;
@@ -106,6 +110,10 @@ int main(int argc, char *argv[]) {
 
     /* initialize previous disk metrics return value */
     int prev_ret_get_disk_metrics;
+
+    /* delimiter positions */
+    int network_column_positions[] = {19, 33, 45, 58, 73, 87, 99, 112, 127};
+    int disk_column_positions[] = {14, 29, 46, 62};
 
     /* initialize ncurses window struct */
     WINDOW *main_window;
@@ -161,61 +169,32 @@ int main(int argc, char *argv[]) {
         int if_name_found = 0;
         int disk_name_found = 0;
 
-        /* allocate metrics structs */
-        cur_os_metrics = (struct os_metrics *)malloc(sizeof(struct os_metrics));
-        if (cur_os_metrics == NULL) {
-            strcpy(error_msg, "ERROR: unable to allocate memory for cur_os_metrics");
-            ++error_flag;
-            break;
-        }
-
-        cur_memory_metrics = (struct memory_metrics *)malloc(sizeof(struct memory_metrics));
-        if (cur_memory_metrics == NULL) {
-            strcpy(error_msg, "ERROR: unable to allocate memory for cur_memory_metrics");
-            ++error_flag;
-            break;
-        }
-
-        cur_network_metrics = (struct network_metrics *)malloc(sizeof(struct network_metrics));
-        if (cur_network_metrics == NULL) {
-            strcpy(error_msg, "ERROR: unable to allocate memory for cur_network_metrics");
-            ++error_flag;
-            break;
-        }
-
-        cur_disk_metrics = (struct disk_metrics *)malloc(sizeof(struct disk_metrics));
-        if (cur_disk_metrics == NULL) {
-            strcpy(error_msg, "ERROR: unable to allocate memory for cur_disk_metrics");
-            ++error_flag;
-            break;
-        }
-
         /* retrieve metrics for os_metrics */
-        ret_get_loadavg = get_loadavg(cur_os_metrics);
+        ret_get_loadavg = get_loadavg(&cur_os_metrics);
         if (ret_get_loadavg < 0) {
             strcpy(error_msg, "ERROR: unable to retrieve loadavg metrics");
             ++error_flag;
             break;
         }
 
-        ret_get_fd_usage = get_fd_usage(cur_os_metrics);
+        ret_get_fd_usage = get_fd_usage(&cur_os_metrics);
         if (ret_get_fd_usage < 0) {
             strcpy(error_msg, "ERROR: unable to retrieve file descriptor metrics");
             ++error_flag;
             break;
         }
 
-        ret_get_process_states = get_process_states(cur_os_metrics);
+        ret_get_process_states = get_process_states(&cur_os_metrics);
         if (ret_get_process_states < 0) {
             strcpy(error_msg, "ERROR: unable to retrieve process states metrics");
             ++error_flag;
             break;
         }
 
-        get_current_users(cur_os_metrics);
+        get_current_users(&cur_os_metrics);
 
         /* retrieve metrics for memory_metrics */
-        ret_get_memory_usage = get_memory_usage(cur_memory_metrics);
+        ret_get_memory_usage = get_memory_usage(&cur_memory_metrics);
         if (ret_get_memory_usage < 0) {
             strcpy(error_msg, "ERROR: unable to retrieve memory metrics");
             ++error_flag;
@@ -223,14 +202,14 @@ int main(int argc, char *argv[]) {
         }
 
         /* retrieve metrics for network_metrics */
-        ret_get_interface_metrics = get_interface_metrics(cur_network_metrics);
+        ret_get_interface_metrics = get_interface_metrics(&cur_network_metrics);
         if (ret_get_interface_metrics < 0) {
             strcpy(error_msg, "ERROR: unable to retrieve network interface metrics");
             ++error_flag;
             break;
         }
 
-        ret_get_arp_metrics = get_arp_metrics(cur_network_metrics);
+        ret_get_arp_metrics = get_arp_metrics(&cur_network_metrics);
         if (ret_get_arp_metrics < 0) {
             strcpy(error_msg, "ERROR: unable to retrieve arp metrics");
             ++error_flag;
@@ -238,7 +217,7 @@ int main(int argc, char *argv[]) {
         }
 
         /* retrieve metrics for disk_metrics */
-        ret_get_disk_metrics = get_disk_metrics(cur_disk_metrics);
+        ret_get_disk_metrics = get_disk_metrics(&cur_disk_metrics);
         if (ret_get_disk_metrics < 0) {
             strcpy(error_msg, "ERROR: unable to retrieve disk metrics");
             ++error_flag;
@@ -249,53 +228,53 @@ int main(int argc, char *argv[]) {
         construct_window_layout(main_window, ret_get_interface_metrics);
 
         /* print available metrics */
-        mvwprintw(main_window, 3, 36, "%6.2f", cur_os_metrics->loadavg_1m);
-        mvwprintw(main_window, 3, 43, "%6.2f", cur_os_metrics->loadavg_5m);
-        mvwprintw(main_window, 3, 50, "%6.2f", cur_os_metrics->loadavg_15m);
-        mvwprintw(main_window, 3, 83, "%10ld", cur_os_metrics->fd_usage);
-        mvwprintw(main_window, 4, 12, "%8ld", cur_os_metrics->total_process);
-        mvwprintw(main_window, 4, 29, "%8ld", cur_os_metrics->running_process);
-        mvwprintw(main_window, 4, 48, "%8ld", cur_os_metrics->blocked_process);
-        mvwprintw(main_window, 4, 67, "%8ld", cur_os_metrics->zombie_process);
-        mvwprintw(main_window, 5, 8, "%8ld", cur_os_metrics->current_users);
+        mvwprintw(main_window, 3, 36, "%6.2f", cur_os_metrics.loadavg_1m);
+        mvwprintw(main_window, 3, 43, "%6.2f", cur_os_metrics.loadavg_5m);
+        mvwprintw(main_window, 3, 50, "%6.2f", cur_os_metrics.loadavg_15m);
+        mvwprintw(main_window, 3, 83, "%10ld", cur_os_metrics.fd_usage);
+        mvwprintw(main_window, 4, 12, "%8ld", cur_os_metrics.total_process);
+        mvwprintw(main_window, 4, 29, "%8ld", cur_os_metrics.running_process);
+        mvwprintw(main_window, 4, 48, "%8ld", cur_os_metrics.blocked_process);
+        mvwprintw(main_window, 4, 67, "%8ld", cur_os_metrics.zombie_process);
+        mvwprintw(main_window, 5, 8, "%8ld", cur_os_metrics.current_users);
 
-        mvwprintw(main_window, 10, 19, "%10ld", cur_memory_metrics->total_memory / 1024);
-        mvwprintw(main_window, 10, 38, "%10ld", cur_memory_metrics->avail_memory / 1024);
-        mvwprintw(main_window, 10, 57, "%10ld", cur_memory_metrics->free_memory / 1024);
-        mvwprintw(main_window, 10, 75, "%10ld", cur_memory_metrics->buffer / 1024);
-        mvwprintw(main_window, 10, 95, "%10ld", cur_memory_metrics->cache / 1024);
-        mvwprintw(main_window, 10, 114, "%10ld", cur_memory_metrics->page_tables / 1024);
-        mvwprintw(main_window, 11, 17, "%10ld", cur_memory_metrics->total_swap / 1024);
-        mvwprintw(main_window, 11, 36, "%10ld", cur_memory_metrics->free_swap / 1024);
+        mvwprintw(main_window, 10, 19, "%10ld", cur_memory_metrics.total_memory / 1024);
+        mvwprintw(main_window, 10, 38, "%10ld", cur_memory_metrics.avail_memory / 1024);
+        mvwprintw(main_window, 10, 57, "%10ld", cur_memory_metrics.free_memory / 1024);
+        mvwprintw(main_window, 10, 75, "%10ld", cur_memory_metrics.buffer / 1024);
+        mvwprintw(main_window, 10, 95, "%10ld", cur_memory_metrics.cache / 1024);
+        mvwprintw(main_window, 10, 114, "%10ld", cur_memory_metrics.page_tables / 1024);
+        mvwprintw(main_window, 11, 17, "%10ld", cur_memory_metrics.total_swap / 1024);
+        mvwprintw(main_window, 11, 36, "%10ld", cur_memory_metrics.free_swap / 1024);
 
-        mvwprintw(main_window, 17, 20, "%8d", cur_network_metrics->arp_cache_entries);
+        mvwprintw(main_window, 17, 20, "%8d", cur_network_metrics.arp_cache_entries);
 
         /* print other metrics that need time difference */
-        if (prev_os_metrics != NULL && prev_memory_metrics != NULL && prev_network_metrics != NULL && prev_disk_metrics != NULL) {
-            mvwprintw(main_window, 3, 113, "%10ld", (cur_os_metrics->context_switches - prev_os_metrics->context_switches) / refresh_second);
+        if (prev_data_flag > 0) {
+            mvwprintw(main_window, 3, 113, "%10ld", (cur_os_metrics.context_switches - prev_os_metrics.context_switches) / refresh_second);
 
-            mvwprintw(main_window, 12, 20, "%12ld", (cur_memory_metrics->major_page_faults - prev_memory_metrics->major_page_faults) / refresh_second);
-            mvwprintw(main_window, 12, 57, "%12ld", (cur_memory_metrics->minor_page_faults - prev_memory_metrics->minor_page_faults) / refresh_second);
+            mvwprintw(main_window, 12, 20, "%12ld", (cur_memory_metrics.major_page_faults - prev_memory_metrics.major_page_faults) / refresh_second);
+            mvwprintw(main_window, 12, 57, "%12ld", (cur_memory_metrics.minor_page_faults - prev_memory_metrics.minor_page_faults) / refresh_second);
 
             /* network interface metrics*/
             for (int i = 0; i < ret_get_interface_metrics; ++i) {
                 for (int j = 0; j < prev_ret_get_interface_metrics; ++j) {
                     /* only process if current interface name exists */
-                    if (strcmp(cur_network_metrics->if_network[i].interface_name, prev_network_metrics->if_network[i].interface_name) == 0) {
+                    if (strcmp(cur_network_metrics.if_network[i].interface_name, prev_network_metrics.if_network[i].interface_name) == 0) {
                         ++if_name_found;
-                        print_network_interface_delimiter(main_window, init_if_name_row + if_name_found - 1);
+                        print_delimiter(main_window, init_if_name_row + if_name_found - 1, network_column_positions, SIZEOF(network_column_positions));
 
                         /* print interface metrics */
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 1, "%-16s", cur_network_metrics->if_network[i].interface_name);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 23, "%10ld", (cur_network_metrics->if_network[i].rx_packets - prev_network_metrics->if_network[i].rx_packets) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 35, "%10ld", (cur_network_metrics->if_network[i].rx_bytes - prev_network_metrics->if_network[i].rx_bytes) / 1024 / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 48, "%10ld", (cur_network_metrics->if_network[i].rx_errors - prev_network_metrics->if_network[i].rx_errors) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 63, "%10ld", (cur_network_metrics->if_network[i].rx_dropped - prev_network_metrics->if_network[i].rx_dropped) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 77, "%10ld", (cur_network_metrics->if_network[i].tx_packets - prev_network_metrics->if_network[i].tx_packets) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 89, "%10ld", (cur_network_metrics->if_network[i].tx_bytes - prev_network_metrics->if_network[i].tx_bytes) / 1024 / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 102, "%10ld", (cur_network_metrics->if_network[i].tx_errors - prev_network_metrics->if_network[i].tx_errors) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 117, "%10ld", (cur_network_metrics->if_network[i].tx_dropped - prev_network_metrics->if_network[i].tx_dropped) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 129, "%10ld", (cur_network_metrics->if_network[i].collisions - prev_network_metrics->if_network[i].collisions) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 1, "%-16s", cur_network_metrics.if_network[i].interface_name);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 23, "%10ld", (cur_network_metrics.if_network[i].rx_packets - prev_network_metrics.if_network[i].rx_packets) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 35, "%10ld", (cur_network_metrics.if_network[i].rx_bytes - prev_network_metrics.if_network[i].rx_bytes) / 1024 / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 48, "%10ld", (cur_network_metrics.if_network[i].rx_errors - prev_network_metrics.if_network[i].rx_errors) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 63, "%10ld", (cur_network_metrics.if_network[i].rx_dropped - prev_network_metrics.if_network[i].rx_dropped) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 77, "%10ld", (cur_network_metrics.if_network[i].tx_packets - prev_network_metrics.if_network[i].tx_packets) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 89, "%10ld", (cur_network_metrics.if_network[i].tx_bytes - prev_network_metrics.if_network[i].tx_bytes) / 1024 / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 102, "%10ld", (cur_network_metrics.if_network[i].tx_errors - prev_network_metrics.if_network[i].tx_errors) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 117, "%10ld", (cur_network_metrics.if_network[i].tx_dropped - prev_network_metrics.if_network[i].tx_dropped) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 129, "%10ld", (cur_network_metrics.if_network[i].collisions - prev_network_metrics.if_network[i].collisions) / refresh_second);
 
                         break;
                     }
@@ -306,17 +285,17 @@ int main(int argc, char *argv[]) {
             for (int i = 0; i < ret_get_disk_metrics; ++i) {
                 for (int j = 0; j < prev_ret_get_disk_metrics; ++j) {
                     /* only process if current disk name exists */
-                    if (strcmp(cur_disk_metrics->diskstats[i].disk_name, prev_disk_metrics->diskstats[i].disk_name) == 0) {
+                    if (strcmp(cur_disk_metrics.diskstats[i].disk_name, prev_disk_metrics.diskstats[i].disk_name) == 0) {
                         ++disk_name_found;
 
-                        print_disk_delimiter(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1);
+                        print_delimiter(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, disk_column_positions, SIZEOF(disk_column_positions));
 
                         /* print disk metrics */
-                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 1, "%-12s", cur_disk_metrics->diskstats[i].disk_name);
-                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 17, "%12ld", (cur_disk_metrics->diskstats[i].reads - prev_disk_metrics->diskstats[i].reads) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 31, "%15ld", ((cur_disk_metrics->diskstats[i].sector_read - prev_disk_metrics->diskstats[i].sector_read)) * cur_disk_metrics->diskstats[i].sector_size / 1024 / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 50, "%12ld", (cur_disk_metrics->diskstats[i].writes - prev_disk_metrics->diskstats[i].writes) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 64, "%15ld", ((cur_disk_metrics->diskstats[i].sector_write - prev_disk_metrics->diskstats[i].sector_write)) * cur_disk_metrics->diskstats[i].sector_size / 1024 / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 1, "%-12s", cur_disk_metrics.diskstats[i].disk_name);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 17, "%12ld", (cur_disk_metrics.diskstats[i].reads - prev_disk_metrics.diskstats[i].reads) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 31, "%15ld", ((cur_disk_metrics.diskstats[i].sector_read - prev_disk_metrics.diskstats[i].sector_read)) * cur_disk_metrics.diskstats[i].sector_size / 1024 / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 50, "%12ld", (cur_disk_metrics.diskstats[i].writes - prev_disk_metrics.diskstats[i].writes) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 64, "%15ld", ((cur_disk_metrics.diskstats[i].sector_write - prev_disk_metrics.diskstats[i].sector_write)) * cur_disk_metrics.diskstats[i].sector_size / 1024 / refresh_second);
 
                         break;
                     }
@@ -329,110 +308,23 @@ int main(int argc, char *argv[]) {
         /* sleep */
         napms((int)refresh_second * 1000);
 
-        /* free previous metrics structs */
-        free(prev_os_metrics);
-        prev_os_metrics = NULL;
-        free(prev_memory_metrics);
-        prev_memory_metrics = NULL;
-        free(prev_network_metrics);
-        prev_network_metrics = NULL;
-        free(prev_disk_metrics);
-        prev_disk_metrics = NULL;
-
         /* copy the current metrics as previous ones for next calculation */
-        prev_os_metrics = (struct os_metrics *)malloc(sizeof(struct os_metrics));
-        if (prev_os_metrics == NULL) {
-            strcpy(error_msg, "ERROR: unable to allocate memory for prev_os_metrics");
-            ++error_flag;
-            break;
-        }
-
-        prev_memory_metrics = (struct memory_metrics *)malloc(sizeof(struct memory_metrics));
-        if (prev_memory_metrics == NULL) {
-            strcpy(error_msg, "ERROR: unable to allocate memory for prev_memory_metrics");
-            ++error_flag;
-            break;
-        }
-
-        prev_network_metrics = (struct network_metrics *)malloc(sizeof(struct network_metrics));
-        if (prev_network_metrics == NULL) {
-            strcpy(error_msg, "ERROR: unable to allocate memory for prev_network_metrics");
-            ++error_flag;
-            break;
-        }
-
-        prev_disk_metrics = (struct disk_metrics *)malloc(sizeof(struct disk_metrics));
-        if (prev_disk_metrics == NULL) {
-            strcpy(error_msg, "ERROR: unable to allocate memory for prev_disk_metrics");
-            ++error_flag;
-            break;
-        }
-
-        /* TODO: need to add error check as memcpy() does not indicate failuer if it is failed */
-        memcpy(prev_os_metrics, cur_os_metrics, sizeof(struct os_metrics));
-        memcpy(prev_memory_metrics, cur_memory_metrics, sizeof(struct memory_metrics));
-        memcpy(prev_network_metrics, cur_network_metrics, sizeof(struct network_metrics));
-        memcpy(prev_disk_metrics, cur_disk_metrics, sizeof(struct disk_metrics));
+        prev_os_metrics = cur_os_metrics;
+        prev_memory_metrics = cur_memory_metrics;
+        prev_network_metrics = cur_network_metrics;
+        prev_disk_metrics = cur_disk_metrics;
 
         prev_ret_get_interface_metrics = ret_get_interface_metrics;
         prev_ret_get_disk_metrics = ret_get_disk_metrics;
 
-        /* free current metrics structs */
-        free(cur_os_metrics);
-        cur_os_metrics = NULL;
-        free(cur_memory_metrics);
-        cur_memory_metrics = NULL;
-        free(cur_network_metrics);
-        cur_network_metrics = NULL;
-        free(cur_disk_metrics);
-        cur_disk_metrics = NULL;
+        /* set flag once previous data is copied */
+        prev_data_flag = 1;
     }
 
     /* terminate ncurses window */
     wstandend(main_window);
     delwin(main_window);
     endwin();
-
-    /* fail-safe to free pointers */
-    if (cur_os_metrics != NULL) {
-        free(cur_os_metrics);
-        cur_os_metrics = NULL;
-    }
-
-    if (cur_memory_metrics != NULL) {
-        free(cur_memory_metrics);
-        cur_memory_metrics = NULL;
-    }
-
-    if (cur_network_metrics != NULL) {
-        free(cur_network_metrics);
-        cur_network_metrics = NULL;
-    }
-
-    if (cur_disk_metrics != NULL) {
-        free(cur_disk_metrics);
-        cur_disk_metrics = NULL;
-    }
-
-    if (prev_os_metrics != NULL) {
-        free(prev_os_metrics);
-        prev_os_metrics = NULL;
-    }
-
-    if (prev_memory_metrics != NULL) {
-        free(prev_memory_metrics);
-        prev_memory_metrics = NULL;
-    }
-
-    if (prev_network_metrics != NULL) {
-        free(prev_network_metrics);
-        prev_network_metrics = NULL;
-    }
-
-    if (prev_disk_metrics != NULL) {
-        free(prev_disk_metrics);
-        prev_disk_metrics = NULL;
-    }
 
     /* print error message if error_flag is set */
     if (error_flag > 0) {

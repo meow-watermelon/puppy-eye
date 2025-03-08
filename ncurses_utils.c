@@ -71,25 +71,11 @@ void construct_window_layout(WINDOW *input_window, int interface_count) {
     wrefresh(input_window);
 }
 
-void print_network_interface_delimiter(WINDOW *input_window, int row_number) {
+void print_delimiter(WINDOW *input_window, int row_number, int *column_positions, size_t column_size) {
     char *delimiter = "|";
-    int column_positions[] = {19, 33, 45, 58, 73, 87, 99, 112, 127};
-    int column_count = 9;
 
     wattron(input_window, A_BOLD);
-    for (int i = 0; i < column_count; ++i) {
-        mvwprintw(input_window, row_number, column_positions[i], delimiter);
-    }
-    wattroff(input_window, A_BOLD);
-}
-
-void print_disk_delimiter(WINDOW *input_window, int row_number) {
-    char *delimiter = "|";
-    int column_positions[] = {14, 29, 46, 62};
-    int column_count = 4;
-
-    wattron(input_window, A_BOLD);
-    for (int i = 0; i < column_count; ++i) {
+    for (size_t i = 0; i < column_size; ++i) {
         mvwprintw(input_window, row_number, column_positions[i], delimiter);
     }
     wattroff(input_window, A_BOLD);
