@@ -11,6 +11,7 @@
 #include "ncurses_utils.h"
 #include "utils.h"
 
+#define SIZEOF(x) (sizeof(x) / sizeof(x[0]))
 #define VERSION "1.2.0"
 
 /* define usage function */
@@ -106,6 +107,10 @@ int main(int argc, char *argv[]) {
 
     /* initialize previous disk metrics return value */
     int prev_ret_get_disk_metrics;
+
+    /* delimiter positions */
+    int network_column_positions[] = {19, 33, 45, 58, 73, 87, 99, 112, 127};
+    int disk_column_positions[] = {14, 29, 46, 62};
 
     /* initialize ncurses window struct */
     WINDOW *main_window;
@@ -283,7 +288,7 @@ int main(int argc, char *argv[]) {
                     /* only process if current interface name exists */
                     if (strcmp(cur_network_metrics->if_network[i].interface_name, prev_network_metrics->if_network[i].interface_name) == 0) {
                         ++if_name_found;
-                        print_network_interface_delimiter(main_window, init_if_name_row + if_name_found - 1);
+                        print_delimiter(main_window, init_if_name_row + if_name_found - 1, network_column_positions, SIZEOF(network_column_positions));
 
                         /* print interface metrics */
                         mvwprintw(main_window, init_if_name_row + if_name_found - 1, 1, "%-16s", cur_network_metrics->if_network[i].interface_name);
@@ -309,7 +314,7 @@ int main(int argc, char *argv[]) {
                     if (strcmp(cur_disk_metrics->diskstats[i].disk_name, prev_disk_metrics->diskstats[i].disk_name) == 0) {
                         ++disk_name_found;
 
-                        print_disk_delimiter(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1);
+                        print_delimiter(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, disk_column_positions, SIZEOF(disk_column_positions));
 
                         /* print disk metrics */
                         mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 1, "%-12s", cur_disk_metrics->diskstats[i].disk_name);
