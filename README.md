@@ -69,7 +69,7 @@ Users can simply run `puppy-eye` without any options. The default refresh period
 
 ```
 $ ./puppy-eye -h
-Puppy Eye Linux System Monitoring Utility - Version 1.2.1
+Puppy Eye Linux System Monitoring Utility - Version 1.2.2
 usage: puppy-eye [-r|--refresh <second(s)>]
                  [-h|--help]
 ```
@@ -97,4 +97,6 @@ usage: puppy-eye [-r|--refresh <second(s)>]
 [02/17/2025] 1.2.0 - add disk metrics
 
 [03/08/2025] 1.2.1 - reduce memory allocation footprint and refactor code
+
+[03/22/2025] 1.2.2 - optimize ncurses window display / refresh and minor bug fix
 ```

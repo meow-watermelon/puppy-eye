@@ -11,8 +11,7 @@
 #include "ncurses_utils.h"
 #include "utils.h"
 
-#define SIZEOF(x) (sizeof(x) / sizeof(x[0]))
-#define VERSION "1.2.1"
+#define VERSION "1.2.2"
 
 /* define usage function */
 static void usage(void) {
@@ -148,11 +147,9 @@ int main(int argc, char *argv[]) {
 
         /* clear window */
         wclear(main_window);
-        wrefresh(main_window);
 
         /* create window boarder */
         box(main_window, 0, 0);
-        wrefresh(main_window);
 
         /* initialize variables */
         int ret_get_loadavg;
@@ -260,21 +257,21 @@ int main(int argc, char *argv[]) {
             for (int i = 0; i < ret_get_interface_metrics; ++i) {
                 for (int j = 0; j < prev_ret_get_interface_metrics; ++j) {
                     /* only process if current interface name exists */
-                    if (strcmp(cur_network_metrics.if_network[i].interface_name, prev_network_metrics.if_network[i].interface_name) == 0) {
+                    if (strcmp(cur_network_metrics.if_network[i].interface_name, prev_network_metrics.if_network[j].interface_name) == 0) {
                         ++if_name_found;
                         print_delimiter(main_window, init_if_name_row + if_name_found - 1, network_column_positions, SIZEOF(network_column_positions));
 
                         /* print interface metrics */
                         mvwprintw(main_window, init_if_name_row + if_name_found - 1, 1, "%-16s", cur_network_metrics.if_network[i].interface_name);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 23, "%10ld", (cur_network_metrics.if_network[i].rx_packets - prev_network_metrics.if_network[i].rx_packets) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 35, "%10ld", (cur_network_metrics.if_network[i].rx_bytes - prev_network_metrics.if_network[i].rx_bytes) / 1024 / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 48, "%10ld", (cur_network_metrics.if_network[i].rx_errors - prev_network_metrics.if_network[i].rx_errors) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 63, "%10ld", (cur_network_metrics.if_network[i].rx_dropped - prev_network_metrics.if_network[i].rx_dropped) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 77, "%10ld", (cur_network_metrics.if_network[i].tx_packets - prev_network_metrics.if_network[i].tx_packets) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 89, "%10ld", (cur_network_metrics.if_network[i].tx_bytes - prev_network_metrics.if_network[i].tx_bytes) / 1024 / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 102, "%10ld", (cur_network_metrics.if_network[i].tx_errors - prev_network_metrics.if_network[i].tx_errors) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 117, "%10ld", (cur_network_metrics.if_network[i].tx_dropped - prev_network_metrics.if_network[i].tx_dropped) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 129, "%10ld", (cur_network_metrics.if_network[i].collisions - prev_network_metrics.if_network[i].collisions) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 23, "%10ld", (cur_network_metrics.if_network[i].rx_packets - prev_network_metrics.if_network[j].rx_packets) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 35, "%10ld", (cur_network_metrics.if_network[i].rx_bytes - prev_network_metrics.if_network[j].rx_bytes) / 1024 / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 48, "%10ld", (cur_network_metrics.if_network[i].rx_errors - prev_network_metrics.if_network[j].rx_errors) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 63, "%10ld", (cur_network_metrics.if_network[i].rx_dropped - prev_network_metrics.if_network[j].rx_dropped) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 77, "%10ld", (cur_network_metrics.if_network[i].tx_packets - prev_network_metrics.if_network[j].tx_packets) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 89, "%10ld", (cur_network_metrics.if_network[i].tx_bytes - prev_network_metrics.if_network[j].tx_bytes) / 1024 / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 102, "%10ld", (cur_network_metrics.if_network[i].tx_errors - prev_network_metrics.if_network[j].tx_errors) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 117, "%10ld", (cur_network_metrics.if_network[i].tx_dropped - prev_network_metrics.if_network[j].tx_dropped) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found - 1, 129, "%10ld", (cur_network_metrics.if_network[i].collisions - prev_network_metrics.if_network[j].collisions) / refresh_second);
 
                         break;
                     }
@@ -285,17 +282,17 @@ int main(int argc, char *argv[]) {
             for (int i = 0; i < ret_get_disk_metrics; ++i) {
                 for (int j = 0; j < prev_ret_get_disk_metrics; ++j) {
                     /* only process if current disk name exists */
-                    if (strcmp(cur_disk_metrics.diskstats[i].disk_name, prev_disk_metrics.diskstats[i].disk_name) == 0) {
+                    if (strcmp(cur_disk_metrics.diskstats[i].disk_name, prev_disk_metrics.diskstats[j].disk_name) == 0) {
                         ++disk_name_found;
 
                         print_delimiter(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, disk_column_positions, SIZEOF(disk_column_positions));
 
                         /* print disk metrics */
                         mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 1, "%-12s", cur_disk_metrics.diskstats[i].disk_name);
-                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 17, "%12ld", (cur_disk_metrics.diskstats[i].reads - prev_disk_metrics.diskstats[i].reads) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 31, "%15ld", ((cur_disk_metrics.diskstats[i].sector_read - prev_disk_metrics.diskstats[i].sector_read)) * cur_disk_metrics.diskstats[i].sector_size / 1024 / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 50, "%12ld", (cur_disk_metrics.diskstats[i].writes - prev_disk_metrics.diskstats[i].writes) / refresh_second);
-                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 64, "%15ld", ((cur_disk_metrics.diskstats[i].sector_write - prev_disk_metrics.diskstats[i].sector_write)) * cur_disk_metrics.diskstats[i].sector_size / 1024 / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 17, "%12ld", (cur_disk_metrics.diskstats[i].reads - prev_disk_metrics.diskstats[j].reads) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 31, "%15ld", ((cur_disk_metrics.diskstats[i].sector_read - prev_disk_metrics.diskstats[j].sector_read)) * cur_disk_metrics.diskstats[i].sector_size / 1024 / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 50, "%12ld", (cur_disk_metrics.diskstats[i].writes - prev_disk_metrics.diskstats[j].writes) / refresh_second);
+                        mvwprintw(main_window, init_if_name_row + if_name_found + disk_name_found + 6 - 1, 64, "%15ld", ((cur_disk_metrics.diskstats[i].sector_write - prev_disk_metrics.diskstats[j].sector_write)) * cur_disk_metrics.diskstats[i].sector_size / 1024 / refresh_second);
 
                         break;
                     }
