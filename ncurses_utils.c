@@ -14,7 +14,7 @@ void construct_window_layout(WINDOW *input_window, int interface_count) {
     char *page_faults_layout = "Page Faults Count:              major faults / second |              minor page faults / second";
 
     char *network_metrics_banner = "Network Metrics";
-    char *arp_cache_entries_layout = "ARP Cache entries:         ";
+    char *arp_cache_entries_layout = "ARP Cache Entries:         ";
     char *interface_io_banner_layout = "[Network Interface I/O (per second)]";
     char *interface_layout = "Interface Name    |  RX Packet  |   RX KB   |  RX Error  |  RX Dropped  |  TX Packet  |   TX KB   |  TX Error  |  TX Dropped  |  Collision";
 
