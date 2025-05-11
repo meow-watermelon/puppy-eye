@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "memory.h"
+#include "utils.h"
 
 int get_memory_usage(struct memory_metrics *input_memory_metrics) {
     /* initialize variables for memory metrics */
@@ -40,7 +41,7 @@ int get_memory_usage(struct memory_metrics *input_memory_metrics) {
         {"SwapTotal", &input_memory_metrics->total_swap},
         {"SwapFree", &input_memory_metrics->free_swap},
     };
-    mappings_size = sizeof(meminfo_mappings_name) / sizeof(meminfo_mappings_name[0]);
+    mappings_size = SIZEOF(meminfo_mappings_name);
 
     /* read /proc/meminfo file */
     meminfo_file = fopen("/proc/meminfo", "r");
@@ -74,7 +75,7 @@ int get_memory_usage(struct memory_metrics *input_memory_metrics) {
         {"pgfault", &input_memory_metrics->total_page_faults},
         {"pgmajfault", &input_memory_metrics->major_page_faults},
     };
-    mappings_size = sizeof(vmstat_mappings_name) / sizeof(vmstat_mappings_name[0]);
+    mappings_size = SIZEOF(vmstat_mappings_name);
 
     /* read /proc/vmstat file */
     vmstat_file = fopen("/proc/vmstat", "r");
