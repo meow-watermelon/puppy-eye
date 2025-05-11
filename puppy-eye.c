@@ -1,8 +1,10 @@
 #include <errno.h>
 #include <getopt.h>
+#include <ncurses.h>
 #include <stdlib.h>
 #include <string.h>
-#include <ncurses.h>
+#include <sys/time.h>
+#include <sys/types.h>
 #include <unistd.h>
 #include "os.h"
 #include "memory.h"
@@ -11,7 +13,7 @@
 #include "ncurses_utils.h"
 #include "utils.h"
 
-#define VERSION "1.2.2"
+#define VERSION "1.3.0"
 
 /* define usage function */
 static void usage(void) {
@@ -141,10 +143,6 @@ int main(int argc, char *argv[]) {
 
     /* data collection and refresh logic */
     while (1) {
-        if (wgetch(main_window) == 'q') {
-            break;
-        }
-
         /* clear window */
         wclear(main_window);
 
@@ -165,6 +163,11 @@ int main(int argc, char *argv[]) {
 
         int if_name_found = 0;
         int disk_name_found = 0;
+
+        /* select() use */
+        struct timeval tv;
+        fd_set readfds;
+        int ret_select;
 
         /* retrieve metrics for os_metrics */
         ret_get_loadavg = get_loadavg(&cur_os_metrics);
@@ -302,8 +305,22 @@ int main(int argc, char *argv[]) {
 
         wrefresh(main_window);
 
-        /* sleep */
-        napms((int)refresh_second * 1000);
+        /* clear readfds and only add stdin */
+        FD_ZERO(&readfds);
+        FD_SET(STDIN_FILENO, &readfds);
+
+        /* define sleep time period */
+        tv.tv_sec = refresh_second;
+        tv.tv_usec = 0;
+
+        /* sleep and exit the loop if q / Q is pressed */
+        ret_select = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv);
+        if (ret_select > 0) {
+            char c;
+            if (read(STDIN_FILENO, &c, 1) != 1 || (c == 'Q' || c == 'q')) {
+                break;
+            }
+        }
 
         /* copy the current metrics as previous ones for next calculation */
         prev_os_metrics = cur_os_metrics;
