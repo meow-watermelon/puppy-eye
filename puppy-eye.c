@@ -1,8 +1,10 @@
 #include <errno.h>
 #include <getopt.h>
 #include <ncurses.h>
+#include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/select.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -13,7 +15,7 @@
 #include "ncurses_utils.h"
 #include "utils.h"
 
-#define VERSION "1.3.0"
+#define VERSION "1.4.0"
 
 /* define usage function */
 static void usage(void) {
@@ -22,6 +24,14 @@ static void usage(void) {
         "usage: puppy-eye [-r|--refresh <second(s)>]\n"
         "                 [-h|--help]\n", VERSION
     );
+}
+
+/* define SIGINT signal handler */
+static volatile sig_atomic_t break_flag = 0;
+static void sigint_handler(int signo) {
+    (void)signo;
+
+    break_flag = 1;
 }
 
 int main(int argc, char *argv[]) {
@@ -116,6 +126,47 @@ int main(int argc, char *argv[]) {
     int network_column_positions[] = {19, 33, 45, 58, 73, 87, 99, 112, 127};
     int disk_column_positions[] = {14, 29, 46, 62};
 
+    /* initialize signal-related variables */
+    struct sigaction sa;
+    sigset_t signal_empty_set;
+    sigset_t signal_block_set;
+
+    if (sigemptyset(&signal_empty_set) < 0) {
+        fprintf(stderr, "ERROR: failed to clear signal set signal_empty_set\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (sigemptyset(&signal_block_set) < 0) {
+        fprintf(stderr, "ERROR: failed to clear signal set signal_block_set\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* add SIGINT signal in signal_block_set */
+    if (sigaddset(&signal_block_set, SIGINT) < 0) {
+        fprintf(stderr, "ERROR: failed to add SIGINT signal in signal_block_set\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* block SIGINT signal */
+    if (sigprocmask(SIG_BLOCK, &signal_block_set, NULL) < 0) {
+        fprintf(stderr, "ERROR: failed to block SIGINT signal\n");
+        exit(EXIT_FAILURE);
+    }
+
+    /* install signal handler */
+    sa.sa_handler = sigint_handler;
+    sa.sa_flags = 0;
+
+    if (sigemptyset(&sa.sa_mask) < 0) {
+        fprintf(stderr, "ERROR: failed to clear signal set sa.sa_mask\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (sigaction(SIGINT, &sa, NULL) < 0) {
+        fprintf(stderr, "ERROR: failed to install signal handler\n");
+        exit(EXIT_FAILURE);
+    }
+
     /* initialize ncurses window struct */
     WINDOW *main_window;
     main_window = NULL;
@@ -164,10 +215,10 @@ int main(int argc, char *argv[]) {
         int if_name_found = 0;
         int disk_name_found = 0;
 
-        /* select() use */
-        struct timeval tv;
+        /* pselect() use */
+        struct timespec ts;
         fd_set readfds;
-        int ret_select;
+        int ret_pselect;
 
         /* retrieve metrics for os_metrics */
         ret_get_loadavg = get_loadavg(&cur_os_metrics);
@@ -310,14 +361,22 @@ int main(int argc, char *argv[]) {
         FD_SET(STDIN_FILENO, &readfds);
 
         /* define sleep time period */
-        tv.tv_sec = refresh_second;
-        tv.tv_usec = 0;
+        ts.tv_sec = refresh_second;
+        ts.tv_nsec = 0;
+
+        ret_pselect = pselect(STDIN_FILENO + 1, &readfds, NULL, NULL, &ts, &signal_empty_set);
 
         /* sleep and exit the loop if q / Q is pressed */
-        ret_select = select(STDIN_FILENO + 1, &readfds, NULL, NULL, &tv);
-        if (ret_select > 0) {
+        if (ret_pselect > 0) {
             char c;
             if (read(STDIN_FILENO, &c, 1) != 1 || (c == 'Q' || c == 'q')) {
+                break;
+            }
+        }
+
+        /* sleep and exit the loop if SIGINT is caught */
+        if (ret_pselect < 0 && errno == EINTR) {
+            if (break_flag > 0) {
                 break;
             }
         }

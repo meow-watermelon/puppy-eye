@@ -69,7 +69,7 @@ Users can simply run `puppy-eye` without any options. The default refresh period
 
 ```
 $ ./puppy-eye -h
-Puppy Eye Linux System Monitoring Utility - Version 1.3.0
+Puppy Eye Linux System Monitoring Utility - Version 1.4.0
 usage: puppy-eye [-r|--refresh <second(s)>]
                  [-h|--help]
 ```
@@ -101,4 +101,6 @@ usage: puppy-eye [-r|--refresh <second(s)>]
 [03/22/2025] 1.2.2 - optimize ncurses window display / refresh and minor bug fix
 
 [05/10/2025] 1.3.0 - handle program quitting in non-blocking style
+
+[05/14/2025] 1.4.0 - handle SIGINT signal gracefully
 ```
