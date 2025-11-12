@@ -15,7 +15,7 @@
 #include "ncurses_utils.h"
 #include "utils.h"
 
-#define VERSION "1.4.0"
+#define VERSION "1.4.1"
 
 /* define usage function */
 static void usage(void) {
@@ -368,8 +368,8 @@ int main(int argc, char *argv[]) {
 
         /* sleep and exit the loop if q / Q is pressed */
         if (ret_pselect > 0) {
-            char c;
-            if (read(STDIN_FILENO, &c, 1) != 1 || (c == 'Q' || c == 'q')) {
+            char input_c;
+            if (read(STDIN_FILENO, &input_c, 1) != 1 || (input_c == 'Q' || input_c == 'q')) {
                 break;
             }
         }

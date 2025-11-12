@@ -53,14 +53,14 @@
 
 ```
 $ make
-gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o puppy-eye.o puppy-eye.c
-gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o os.o os.c
-gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o memory.o memory.c
-gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o network.o network.c
-gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o disk.o disk.c
-gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o utils.o utils.c
-gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -c -o ncurses_utils.o ncurses_utils.c
-gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wno-unused-parameter -Wno-unused-function -Wno-sign-conversion -fsanitize=undefined -I. -o puppy-eye puppy-eye.o os.o memory.o network.o disk.o utils.o ncurses_utils.o -lncurses
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wunused -Wshadow -Wsign-conversion -fsanitize=undefined -I. -c -o puppy-eye.o puppy-eye.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wunused -Wshadow -Wsign-conversion -fsanitize=undefined -I. -c -o os.o os.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wunused -Wshadow -Wsign-conversion -fsanitize=undefined -I. -c -o memory.o memory.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wunused -Wshadow -Wsign-conversion -fsanitize=undefined -I. -c -o network.o network.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wunused -Wshadow -Wsign-conversion -fsanitize=undefined -I. -c -o disk.o disk.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wunused -Wshadow -Wsign-conversion -fsanitize=undefined -I. -c -o utils.o utils.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wunused -Wshadow -Wsign-conversion -fsanitize=undefined -I. -c -o ncurses_utils.o ncurses_utils.c
+gcc -g -Wall -Wextra -Wpedantic -Wconversion -Wdouble-promotion -Wunused -Wshadow -Wsign-conversion -fsanitize=undefined -I. -o puppy-eye puppy-eye.o os.o memory.o network.o disk.o utils.o ncurses_utils.o -lncurses
 ```
 
 ## Usage
@@ -69,7 +69,7 @@ Users can simply run `puppy-eye` without any options. The default refresh period
 
 ```
 $ ./puppy-eye -h
-Puppy Eye Linux System Monitoring Utility - Version 1.4.0
+Puppy Eye Linux System Monitoring Utility - Version 1.4.1
 usage: puppy-eye [-r|--refresh <second(s)>]
                  [-h|--help]
 ```
@@ -103,4 +103,6 @@ usage: puppy-eye [-r|--refresh <second(s)>]
 [05/10/2025] 1.3.0 - handle program quitting in non-blocking style
 
 [05/14/2025] 1.4.0 - handle SIGINT signal gracefully
+
+[11/11/2025] 1.4.1 - fix variable shadowing
 ```
