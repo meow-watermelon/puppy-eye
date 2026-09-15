@@ -105,4 +105,6 @@ usage: puppy-eye [-r|--refresh <second(s)>]
 [05/14/2025] 1.4.0 - handle SIGINT signal gracefully
 
 [11/11/2025] 1.4.1 - fix variable shadowing
+
+[09/14/2026] 1.5.0 - remove is_linux() function
 ```

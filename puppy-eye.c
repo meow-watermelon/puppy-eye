@@ -1,3 +1,7 @@
+#ifndef __linux__
+#error "ERROR: Puppy Eye can be only running on Linux operating system"
+#endif
+
 #include <errno.h>
 #include <getopt.h>
 #include <ncurses.h>
@@ -15,7 +19,7 @@
 #include "ncurses_utils.h"
 #include "utils.h"
 
-#define VERSION "1.4.1"
+#define VERSION "1.5.0"
 
 /* define usage function */
 static void usage(void) {
@@ -89,12 +93,6 @@ int main(int argc, char *argv[]) {
                 usage();
                 exit(EXIT_FAILURE);
         }
-    }
-
-    /* check if host OS is Linux */
-    if (is_linux() != 1) {
-        fprintf(stderr, "ERROR: Puppy Eye can be only running on Linux operating system\n");
-        exit(EXIT_FAILURE);
     }
 
     /* initialize metric structs */
